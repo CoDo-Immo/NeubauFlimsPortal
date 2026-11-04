@@ -1,0 +1,16 @@
+{
+  "name": "NeubauFlimsPortal",
+  "short_name": "NeubauFlims",
+  "description": "Projektablage Casa Coray, Prau Curtgin 5, Flims – CoDo Immobilien AG",
+  "lang": "de-CH",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ecebe6",
+  "theme_color": "#23423a",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

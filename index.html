@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>NeubauFlimsPortal</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#23423a">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="NeubauFlims">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
@@ -422,6 +427,15 @@ function parsePhasen(s){
   const a=s.match(/## Aktueller Stand\n(.+)/); return [out,a?a[1].replace(/[`*🟡✅⬜]/g,"").trim():""];
 }
 const SKIP=new Set([".gitkeep","desktop.ini","Thumbs.db",".DS_Store","Projektportal.html"]);
+/* ---------- Als App installieren (PWA) ---------- */
+let installEvt=null;
+if(MODE==="web"){
+  if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
+  window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; renderSrc(); });
+  window.addEventListener("appinstalled",()=>{ installEvt=null; renderSrc(); toast("NeubauFlimsPortal ist installiert."); });
+}
+async function installApp(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; renderSrc(); }
+
 /* ---------- Quelle wählen ---------- */
 function renderSrc(){
   let h="";
@@ -431,6 +445,7 @@ function renderSrc(){
   } else {
     h=`<div class="seg" role="group" aria-label="Quelle"><button id="b-od" class="${SOURCE==="onedrive"?"on":""}">OneDrive</button><button id="b-local" class="${SOURCE==="local"?"on":""}">Lokaler Ordner</button></div>`;
     if(SOURCE==="onedrive" && account) h+=`<span class="who">${esc(account.username||"")}<button id="b-out">Abmelden</button></span>`;
+    if(installEvt) h+=`<button class="hbtn" id="b-install" title="Portal als App mit eigenem Fenster und Desktop-Symbol installieren">Als App installieren</button>`;
   }
   $("#srcbox").innerHTML=h;
 }
@@ -440,6 +455,7 @@ document.addEventListener("click",e=>{
   else if(id==="b-od"||id==="c-od") startOneDrive(true);
   else if(id==="c-local") loadLocal();
   else if(id==="b-out") signOut();
+  else if(id==="b-install") installApp();
   const a=e.target.closest("a[data-lh]");
   if(a){ e.preventDefault(); openHandle(a.dataset.lh); }
 });
