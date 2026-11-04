@@ -121,6 +121,8 @@ h3 small{font-weight:450;color:var(--stein);font-size:13px}
 .t-pdf{background:#a3402d}.t-docx,.t-doc{background:#355d8a}.t-xlsx,.t-xls{background:#2f6f4c}.t-pptx{background:#b8622f}
 .t-md{background:#6c7068}.t-mp4,.t-mov{background:#6a5590}.t-png,.t-jpg,.t-jpeg{background:#1f8a87}.t-other{background:#8a8d88}
 .ver{font-size:12px;font-weight:700;color:var(--wald-2);margin-left:7px;white-space:nowrap}
+.edit{display:inline-block;margin-left:9px;font-size:12px;font-weight:650;color:var(--see);text-decoration:none;border:1px solid var(--see);border-radius:999px;padding:0 8px;line-height:18px;white-space:nowrap}
+.edit:hover{background:var(--see);color:var(--beton)}
 .newb{font-size:11px;font-weight:700;color:var(--rost);margin-left:7px}
 .path{display:block;color:var(--stein);font-size:12.5px;margin-top:2px;cursor:pointer}
 .path:hover{text-decoration:underline}
@@ -212,7 +214,7 @@ h3 small{font-weight:450;color:var(--stein);font-size:13px}
 <script>
 const SNAP = null;
 const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
-const CFG = {"clientId": "fda05041-c0b9-4a93-af9c-e266ebabf93e", "shareUrl": "https://1drv.ms/f/c/f41bc9247ecf3149/IgDW8fdLrfPVQLD3jdWSnXLhAWM9yLuGRhJfVN1Ixe5YN78"};
+const CFG = {"clientId": "fda05041-c0b9-4a93-af9c-e266ebabf93e", "shareUrl": "https://1drv.ms/f/c/f41bc9247ecf3149/IgDW8fdLrfPVQLD3jdWSnXLhAWM9yLuGRhJfVN1Ixe5YN78", "davBase": "https://d.docs.live.net/f41bc9247ecf3149/Documente/LLM_Projekte/projekte/CoDO%20Neubau%20Flims/"};
 const MSAL_URL = "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js";
 const SCOPES = ["Files.Read.All"];
 let SOURCE = MODE==="file" ? "snapshot" : "none";   // snapshot | local | onedrive | none
@@ -327,6 +329,12 @@ function renderHead(){
 }
 
 /* ---------- Dateizeilen ---------- */
+const OFFICE={docx:"ms-word",doc:"ms-word",docm:"ms-word",xlsx:"ms-excel",xls:"ms-excel",xlsm:"ms-excel",pptx:"ms-powerpoint",ppt:"ms-powerpoint"};
+function editUrl(f){
+  const sch=OFFICE[ext(f.p)]; if(!sch) return "";
+  const base=f.dav || (CFG.davBase ? CFG.davBase.replace(/\/?$/,"/")+f.p.split("/").map(encodeURIComponent).join("/") : "");
+  return base ? `${sch}:ofe|u|${base}` : "";
+}
 function linkAttr(f){
   if(f.u) return `href="${esc(f.u)}" target="_blank" rel="noopener"`;
   if(HANDLES.has(f.p)) return `href="#" data-lh="${esc(f.p)}"`;
@@ -337,7 +345,7 @@ function fileCell(f,showPath){
   const n=f.p.split("/").pop(); const e=ext(n); const v=ver(n);
   const t=["pdf","docx","doc","xlsx","xls","pptx","md","mp4","mov","png","jpg","jpeg"].includes(e)?e:"other";
   const dir=f.p.split("/").slice(0,-1).join("/");
-  return `<div class="file"><span class="ico t-${t}">${esc((e||"?").toUpperCase().slice(0,4))}</span><div><a ${linkAttr(f)}>${esc(n)}</a>${v?`<span class="ver">${v}</span>`:""}${isNew(f)?`<span class="newb">neu</span>`:""}${showPath&&dir?`<span class="path" data-go="${esc(dir)}">${esc(dir.split("/").map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(" / "))}</span>`:""}</div></div>`;
+  return `<div class="file"><span class="ico t-${t}">${esc((e||"?").toUpperCase().slice(0,4))}</span><div><a ${linkAttr(f)}>${esc(n)}</a>${v?`<span class="ver">${v}</span>`:""}${editUrl(f)?`<a class="edit" href="${esc(editUrl(f))}" title="In der Office-App öffnen und direkt im Original in OneDrive bearbeiten">Bearbeiten</a>`:""}${isNew(f)?`<span class="newb">neu</span>`:""}${showPath&&dir?`<span class="path" data-go="${esc(dir)}">${esc(dir.split("/").map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(" / "))}</span>`:""}</div></div>`;
 }
 function fileList(files,showPath){
   if(!files.length) return `<div class="empty-state">Hier liegen noch keine Dokumente. Neue Unterlagen dieser Phase gehören in diesen Ordner.</div>`;
@@ -547,7 +555,7 @@ async function startOneDrive(interactive){
         for(const it of r.value){
           if(it.folder){ if(it.name==="_Portal"||it.name.startsWith("_to_delete")) continue; files.push({p:prefix+it.name+"/",d:1}); await walkG(it.id,prefix+it.name+"/"); }
           else { if(SKIP.has(it.name)||it.name.startsWith("~$")) continue;
-            files.push({p:prefix+it.name,s:it.size,m:stamp(new Date(it.lastModifiedDateTime)),u:it.webUrl});
+            files.push({p:prefix+it.name,s:it.size,m:stamp(new Date(it.lastModifiedDateTime)),u:it.webUrl,dav:it.webDavUrl||""});
             if(!prefix&&it.name==="KONTEXT.md") kUrl=it["@microsoft.graph.downloadUrl"]; if(!prefix&&it.name==="PROJEKTSTRUKTUR.md") pUrl=it["@microsoft.graph.downloadUrl"]; }
         }
         setBusy(`Lese OneDrive … ${files.filter(f=>!f.d).length} Dateien`);
