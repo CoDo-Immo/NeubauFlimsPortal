@@ -123,6 +123,17 @@ h3 small{font-weight:450;color:var(--stein);font-size:13px}
 .ver{font-size:12px;font-weight:700;color:var(--wald-2);margin-left:7px;white-space:nowrap}
 .edit{display:inline-block;margin-left:9px;font-size:12px;font-weight:650;color:var(--see);text-decoration:none;border:1px solid var(--see);border-radius:999px;padding:0 8px;line-height:18px;white-space:nowrap}
 .edit:hover{background:var(--see);color:var(--beton)}
+.del{display:inline-block;margin-left:6px;font:inherit;font-size:12px;font-weight:600;color:var(--rost);background:none;border:1px solid transparent;border-radius:999px;padding:0 8px;line-height:18px;cursor:pointer;opacity:.55}
+.row:hover .del{opacity:1;border-color:var(--rost)}
+.del:hover,.del:focus-visible{background:var(--rost);color:var(--beton);opacity:1}
+dialog.confirm{border:1px solid var(--fuge);border-radius:10px;padding:22px 24px;max-width:460px;background:var(--beton);color:var(--graphit);box-shadow:0 20px 50px rgba(0,0,0,.25)}
+dialog.confirm::backdrop{background:rgba(20,30,27,.45)}
+dialog.confirm h4{margin:0 0 8px;font-size:18px;font-stretch:112%}
+dialog.confirm p{margin:0 0 6px;color:var(--stein);font-size:14px;word-break:break-word}
+dialog.confirm .fn{color:var(--graphit);font-weight:650}
+dialog.confirm .btns{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+dialog.confirm button{font:inherit;border-radius:999px;padding:8px 16px;cursor:pointer;border:1px solid var(--fuge);background:var(--kalk);color:var(--graphit)}
+dialog.confirm button.danger{background:var(--rost);border-color:var(--rost);color:#fff;font-weight:650}
 .newb{font-size:11px;font-weight:700;color:var(--rost);margin-left:7px}
 .path{display:block;color:var(--stein);font-size:12.5px;margin-top:2px;cursor:pointer}
 .path:hover{text-decoration:underline}
@@ -211,12 +222,15 @@ h3 small{font-weight:450;color:var(--stein);font-size:13px}
   <main id="main"></main>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<dialog class="confirm" id="delDlg"><h4>Datei löschen?</h4><p class="fn" id="delName"></p><p>Die Datei wird in OneDrive gelöscht und liegt danach im Papierkorb von OneDrive, wo sie sich wiederherstellen lässt. Der Eintrag in KONTEXT.md bleibt bestehen und muss nachgeführt werden.</p><div class="btns"><button id="delNo" type="button">Abbrechen</button><button id="delYes" type="button" class="danger">Löschen</button></div></dialog>
 <script>
 const SNAP = null;
 const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
 const CFG = {"clientId": "fda05041-c0b9-4a93-af9c-e266ebabf93e", "shareUrl": "https://1drv.ms/f/c/f41bc9247ecf3149/IgDW8fdLrfPVQLD3jdWSnXLhAWM9yLuGRhJfVN1Ixe5YN78", "davBase": "https://d.docs.live.net/f41bc9247ecf3149/Documente/LLM_Projekte/projekte/CoDO%20Neubau%20Flims/"};
 const MSAL_URL = "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js";
-const SCOPES = ["Files.Read.All"];
+const SCOPES = ["Files.Read.All","User.Read"];
+const WRITE_SCOPES = ["Files.ReadWrite.All"];
+let OD_DRIVE = null, IS_OWNER = false;
 let SOURCE = MODE==="file" ? "snapshot" : "none";   // snapshot | local | onedrive | none
 const HANDLES = new Map();
 let D = SNAP || {erstellt:"–",files:[],kern:[],phasen:{},stand:"",termine:{}};
@@ -345,7 +359,7 @@ function fileCell(f,showPath){
   const n=f.p.split("/").pop(); const e=ext(n); const v=ver(n);
   const t=["pdf","docx","doc","xlsx","xls","pptx","md","mp4","mov","png","jpg","jpeg"].includes(e)?e:"other";
   const dir=f.p.split("/").slice(0,-1).join("/");
-  return `<div class="file"><span class="ico t-${t}">${esc((e||"?").toUpperCase().slice(0,4))}</span><div><a ${linkAttr(f)}>${esc(n)}</a>${v?`<span class="ver">${v}</span>`:""}${editUrl(f)?`<a class="edit" href="${esc(editUrl(f))}" title="In der Office-App öffnen und direkt im Original in OneDrive bearbeiten">Bearbeiten</a>`:""}${isNew(f)?`<span class="newb">neu</span>`:""}${showPath&&dir?`<span class="path" data-go="${esc(dir)}">${esc(dir.split("/").map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(" / "))}</span>`:""}</div></div>`;
+  return `<div class="file"><span class="ico t-${t}">${esc((e||"?").toUpperCase().slice(0,4))}</span><div><a ${linkAttr(f)}>${esc(n)}</a>${v?`<span class="ver">${v}</span>`:""}${editUrl(f)?`<a class="edit" href="${esc(editUrl(f))}" title="In der Office-App öffnen und direkt im Original in OneDrive bearbeiten">Bearbeiten</a>`:""}${SOURCE==="onedrive"&&IS_OWNER&&f.id&&f.p.includes("/")&&!isReadme(f)?`<button class="del" data-del="${esc(f.p)}" title="Datei in OneDrive löschen (Papierkorb)">Löschen</button>`:""}${isNew(f)?`<span class="newb">neu</span>`:""}${showPath&&dir?`<span class="path" data-go="${esc(dir)}">${esc(dir.split("/").map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(" / "))}</span>`:""}</div></div>`;
 }
 function fileList(files,showPath){
   if(!files.length) return `<div class="empty-state">Hier liegen noch keine Dokumente. Neue Unterlagen dieser Phase gehören in diesen Ordner.</div>`;
@@ -464,6 +478,8 @@ document.addEventListener("click",e=>{
   else if(id==="c-local") loadLocal();
   else if(id==="b-out") signOut();
   else if(id==="b-install") installApp();
+  const d=e.target.closest("button[data-del]");
+  if(d){ e.preventDefault(); askDelete(d.dataset.del); }
   const a=e.target.closest("a[data-lh]");
   if(a){ e.preventDefault(); openHandle(a.dataset.lh); }
 });
@@ -549,13 +565,16 @@ async function startOneDrive(interactive){
     if(!t){ render(); return; }
     const root=await g(t,"/shares/"+shareId(CFG.shareUrl)+"/driveItem");
     const driveId=root.parentReference.driveId; const files=[]; let kUrl=null,pUrl=null; let n=0;
+    OD_DRIVE=driveId; IS_OWNER=false;
+    try{ const [me,drv]=await Promise.all([g(t,"/me?$select=id"),g(t,`/drives/${driveId}?$select=owner`)]);
+      const oid=(drv.owner&&(drv.owner.user||{}).id||"").toLowerCase(); IS_OWNER=!!oid && oid===String(me.id||"").toLowerCase(); }catch(e){ IS_OWNER=false; }
     async function walkG(id,prefix){
       let url=`/drives/${driveId}/items/${id}/children?$top=200`;
       while(url){ const r=await g(t,url);
         for(const it of r.value){
           if(it.folder){ if(it.name==="_Portal"||it.name.startsWith("_to_delete")) continue; files.push({p:prefix+it.name+"/",d:1}); await walkG(it.id,prefix+it.name+"/"); }
           else { if(SKIP.has(it.name)||it.name.startsWith("~$")) continue;
-            files.push({p:prefix+it.name,s:it.size,m:stamp(new Date(it.lastModifiedDateTime)),u:it.webUrl,dav:it.webDavUrl||""});
+            files.push({p:prefix+it.name,s:it.size,m:stamp(new Date(it.lastModifiedDateTime)),u:it.webUrl,dav:it.webDavUrl||"",id:it.id});
             if(!prefix&&it.name==="KONTEXT.md") kUrl=it["@microsoft.graph.downloadUrl"]; if(!prefix&&it.name==="PROJEKTSTRUKTUR.md") pUrl=it["@microsoft.graph.downloadUrl"]; }
         }
         setBusy(`Lese OneDrive … ${files.filter(f=>!f.d).length} Dateien`);
@@ -574,6 +593,34 @@ function odError(e){
   if(e&&(e.status===403||e.status===404)) return "Mit diesem Konto besteht kein Zugriff auf den Projektordner. Der Ordner muss für dieses Microsoft-Konto freigegeben sein.";
   if(e&&e.status===401) return "Die Anmeldung ist abgelaufen. Bitte erneut anmelden.";
   return "OneDrive-Zugriff nicht möglich: "+(e&&e.message||e);
+}
+/* ---------- Löschen (nur Eigentümer, nur OneDrive online) ---------- */
+let delPath=null;
+function askDelete(p){
+  const dlg=$("#delDlg"); delPath=p; $("#delName").textContent=p.split("/").pop();
+  if(dlg.showModal) dlg.showModal(); else if(confirm("Datei löschen? "+p)) doDelete();
+}
+$("#delNo").addEventListener("click",()=>{ $("#delDlg").close(); delPath=null; });
+$("#delYes").addEventListener("click",()=>{ $("#delDlg").close(); doDelete(); });
+async function writeToken(){
+  const app=await ensureMsal();
+  try{ return (await app.acquireTokenSilent({scopes:WRITE_SCOPES,account})).accessToken; }
+  catch(e){ return (await app.acquireTokenPopup({scopes:WRITE_SCOPES,account})).accessToken; }
+}
+async function doDelete(){
+  const p=delPath; delPath=null; const f=D.files.find(x=>x.p===p);
+  if(!f||!f.id||!OD_DRIVE||!IS_OWNER){ toast("Löschen ist nur im Modus OneDrive und nur für den Eigentümer möglich."); return; }
+  try{
+    const t=await writeToken();
+    const r=await fetch(`https://graph.microsoft.com/v1.0/drives/${OD_DRIVE}/items/${f.id}`,{method:"DELETE",headers:{Authorization:"Bearer "+t}});
+    if(r.status!==204 && !r.ok){ const e=new Error("Graph "+r.status); e.status=r.status; throw e; }
+    toast("«"+p.split("/").pop()+"» gelöscht. Sie liegt im Papierkorb von OneDrive.");
+    await startOneDrive(false);
+  }catch(e){
+    if(e&&/popup|user_cancelled|interaction_in_progress/i.test((e.errorCode||"")+" "+(e.message||""))) toast("Löschen abgebrochen: Die Zustimmung zur Schreibberechtigung wurde nicht erteilt.");
+    else if(e&&e.status===403) toast("Keine Berechtigung zum Löschen dieser Datei.");
+    else toast("Löschen nicht möglich: "+(e&&e.message||e));
+  }
 }
 async function signOut(){ try{ const app=await ensureMsal(); store("codo-src","none"); await app.logoutRedirect({account}); }catch(e){ toast("Abmelden nicht möglich."); } }
 
