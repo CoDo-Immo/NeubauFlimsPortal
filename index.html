@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="de-CH">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Projektportal Casa Coray</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
+<style>
+/* Materialpalette: Kalkputz, Sichtbeton, Lärche, Flimserwald, Caumasee */
+:root{
+  --kalk:#ecebe6; --beton:#f8f8f5; --fuge:#d6d4cc; --graphit:#24282b; --stein:#6c7068;
+  --wald:#23423a; --wald-2:#2f5a4e; --wald-soft:#dfe8e3;
+  --laerche:#a8692c; --laerche-soft:#f3e6d6;
+  --see:#1f8a87; --see-soft:#d9eeec;
+  --rost:#a3402d;
+  --head-ink:#f2f1ec; --head-muted:#b9c8c1; --contour:rgba(255,255,255,.09);
+  --sans:"Archivo","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --kalk:#16191a; --beton:#1d2123; --fuge:#30363a; --graphit:#e8e8e3; --stein:#9ba29a;
+  --wald:#11241f; --wald-2:#8ec4b2; --wald-soft:#1f322c;
+  --laerche:#e0a466; --laerche-soft:#3a2b1c; --see:#6fd0cb; --see-soft:#16302f; --rost:#f08b74;
+  --head-ink:#eef0ea; --head-muted:#9fb3ab; --contour:rgba(255,255,255,.06);}}
+:root[data-theme="dark"]{
+  --kalk:#16191a; --beton:#1d2123; --fuge:#30363a; --graphit:#e8e8e3; --stein:#9ba29a;
+  --wald:#11241f; --wald-2:#8ec4b2; --wald-soft:#1f322c;
+  --laerche:#e0a466; --laerche-soft:#3a2b1c; --see:#6fd0cb; --see-soft:#16302f; --rost:#f08b74;
+  --head-ink:#eef0ea; --head-muted:#9fb3ab; --contour:rgba(255,255,255,.06);}
+*{box-sizing:border-box}
+html{background:var(--kalk)}
+body{margin:0;background:var(--kalk);color:var(--graphit);font:15px/1.5 var(--sans);font-variant-numeric:tabular-nums}
+a{color:inherit}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--see);outline-offset:2px;border-radius:4px}
+
+/* ---------- Kopf mit Höhenkurven ---------- */
+header{position:relative;background:var(--wald);color:var(--head-ink);overflow:hidden}
+#contours{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.head{position:relative;max-width:1440px;margin:0 auto;padding:28px 32px 0}
+.toprow{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.owner{font-size:13px;color:var(--head-muted);letter-spacing:.01em}
+h1{margin:4px 0 2px;font-size:clamp(34px,5.4vw,60px);line-height:1;font-weight:760;font-stretch:125%;letter-spacing:-.02em}
+.addr{font-size:15px;color:var(--head-muted);font-stretch:100%}
+.tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.search{position:relative}
+.search input{width:300px;max-width:78vw;padding:10px 12px 10px 36px;border-radius:999px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:var(--head-ink)}
+.search input::placeholder{color:var(--head-muted)}
+.search input:focus{background:rgba(255,255,255,.14);outline:none;border-color:var(--see)}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--head-muted)}
+.hbtn{border:1px solid rgba(255,255,255,.28);background:transparent;color:var(--head-ink);padding:9px 16px;border-radius:999px;cursor:pointer;font-weight:550}
+.hbtn:hover{background:rgba(255,255,255,.1)}
+.hbtn.menu{display:none}
+.facts{display:flex;gap:28px;flex-wrap:wrap;margin:22px 0 0;font-size:13.5px;color:var(--head-muted)}
+.facts b{display:block;color:var(--head-ink);font-size:17px;font-weight:650;font-stretch:112%}
+
+/* ---------- Bauzeitleiste ---------- */
+.timeline{position:relative;margin:26px 0 0;padding:0 0 22px;display:flex;align-items:stretch;gap:0;overflow-x:auto}
+.tl-proj{flex:0 0 auto;display:flex;flex-direction:column;justify-content:flex-end;padding-right:22px;margin-right:22px;border-right:1px solid rgba(255,255,255,.18)}
+.tl-phase{flex:1 1 0;min-width:120px;cursor:pointer;padding-right:6px}
+.tl-phase:hover .tl-name{color:var(--head-ink)}
+.tl-name{font-size:13px;color:var(--head-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:9px;font-weight:500}
+.tl-name b{color:var(--head-ink);font-weight:700;margin-right:5px;font-stretch:115%}
+.tl-phase.aktuell .tl-name{color:var(--head-ink)}
+.tl-bar{position:relative;height:6px;border-radius:3px;background:rgba(255,255,255,.14)}
+.tl-fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--head-muted);width:0}
+.tl-phase.aktuell .tl-fill{background:var(--see)}
+.tl-phase.abgeschlossen .tl-fill{width:100%}
+.tl-subs{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
+.tl-sub{font-size:11.5px;padding:2px 7px;border-radius:999px;color:var(--head-muted);border:1px solid transparent;cursor:pointer;white-space:nowrap}
+.tl-sub:hover{border-color:rgba(255,255,255,.25)}
+.tl-sub.now{background:var(--see);color:#fff;font-weight:650}
+.tl-sub.sel,.tl-phase.sel>.tl-name{text-decoration:underline;text-underline-offset:3px}
+.tl-projbtn{background:none;border:1px solid rgba(255,255,255,.28);color:var(--head-ink);border-radius:8px;padding:8px 12px;cursor:pointer;text-align:left;line-height:1.25}
+.tl-projbtn small{display:block;color:var(--head-muted);font-size:11.5px}
+.tl-projbtn.sel{background:rgba(255,255,255,.12);border-color:var(--head-ink)}
+@media (prefers-reduced-motion:no-preference){ .tl-fill{transition:width 1.1s cubic-bezier(.2,.7,.2,1) .15s} }
+
+/* ---------- Rumpf ---------- */
+.wrap{max-width:1440px;margin:0 auto;display:grid;grid-template-columns:280px minmax(0,1fr);gap:0}
+nav{padding:22px 14px 60px 24px;position:sticky;top:0;align-self:start;max-height:100vh;overflow:auto}
+.tree ul{list-style:none;margin:0;padding-left:15px;border-left:1px solid var(--fuge);margin-left:9px}
+.tree>ul{padding-left:0;border:0;margin-left:0}
+.node{display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none;font-size:14px}
+.node:hover{background:var(--beton)}
+.node.sel{background:var(--wald-2);color:var(--beton)}
+.node.sel .cnt,.node.sel .tw{color:var(--beton);opacity:.75}
+.node .tw{width:12px;text-align:center;color:var(--stein);font-size:10px;flex:0 0 auto}
+.node .cnt{margin-left:auto;color:var(--stein);font-size:12px}
+.node.arch{color:var(--stein);font-style:italic}
+.node.empty{color:var(--stein)}
+.navgap{height:14px}
+main{padding:28px 36px 80px;min-width:0;background:var(--beton);border-left:1px solid var(--fuge);min-height:70vh}
+.crumb{color:var(--stein);font-size:13px;margin-bottom:10px}
+.crumb span{cursor:pointer}
+.crumb span:hover{color:var(--graphit);text-decoration:underline}
+h2{margin:0;font-size:28px;line-height:1.15;font-weight:720;font-stretch:118%;letter-spacing:-.015em}
+.lead{color:var(--stein);margin:6px 0 26px;max-width:70ch}
+h3{font-size:16px;font-weight:700;margin:34px 0 10px;display:flex;align-items:baseline;gap:10px}
+h3 small{font-weight:450;color:var(--stein);font-size:13px}
+.readme{display:inline-block;color:var(--stein);font-size:13px;margin:-14px 0 20px}
+.readme a{color:var(--see)}
+
+/* Dokumentliste */
+.docs{border-top:2px solid var(--graphit)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 110px 190px;gap:16px;padding:13px 4px;border-bottom:1px solid var(--fuge);align-items:start}
+.row.plain{grid-template-columns:minmax(0,1fr) 110px 90px}
+.row.head{font-size:12.5px;color:var(--stein);padding:8px 4px;font-weight:500}
+.row:not(.head):hover{background:var(--kalk)}
+.doc-title{font-weight:650;margin-bottom:5px}
+.file{display:flex;gap:10px;align-items:flex-start;min-width:0;margin-top:3px}
+.file a{text-decoration:none;word-break:break-word;color:var(--graphit)}
+.file a:hover{color:var(--see);text-decoration:underline;text-underline-offset:2px}
+.ico{flex:0 0 32px;height:20px;display:grid;place-items:center;border-radius:3px;font-size:9.5px;font-weight:750;letter-spacing:.03em;color:#fff;margin-top:1px;font-stretch:90%}
+.t-pdf{background:#a3402d}.t-docx,.t-doc{background:#355d8a}.t-xlsx,.t-xls{background:#2f6f4c}.t-pptx{background:#b8622f}
+.t-md{background:#6c7068}.t-mp4,.t-mov{background:#6a5590}.t-png,.t-jpg,.t-jpeg{background:#1f8a87}.t-other{background:#8a8d88}
+.ver{font-size:12px;font-weight:700;color:var(--wald-2);margin-left:7px;white-space:nowrap}
+.newb{font-size:11px;font-weight:700;color:var(--rost);margin-left:7px}
+.path{display:block;color:var(--stein);font-size:12.5px;margin-top:2px;cursor:pointer}
+.path:hover{text-decoration:underline}
+.date,.size{color:var(--stein);font-size:13.5px;white-space:nowrap;padding-top:1px}
+.badge{display:inline-flex;align-items:baseline;gap:6px;font-size:13px;font-weight:600}
+.badge::before{content:"";flex:0 0 8px;width:8px;height:8px;border-radius:50%;background:var(--stein);transform:translateY(-1px)}
+.b-aktuell{color:var(--wald-2)}.b-aktuell::before{background:var(--wald-2)}
+.b-entwurf{color:var(--laerche)}.b-entwurf::before{background:var(--laerche)}
+.b-eingang{color:var(--see)}.b-eingang::before{background:var(--see)}
+.note{display:block;color:var(--stein);font-size:12.5px;margin-top:3px;white-space:normal;line-height:1.4}
+.warn{color:var(--rost);font-size:13px}
+
+/* Unterordner als Register */
+.registers{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 26px}
+.reg{display:flex;align-items:center;gap:10px;padding:9px 14px;border:1px solid var(--fuge);border-left:4px solid var(--wald-2);border-radius:4px 8px 8px 4px;background:var(--kalk);cursor:pointer;font-weight:600}
+.reg:hover{border-color:var(--wald-2)}
+.reg span{font-weight:450;color:var(--stein);font-size:13px}
+.reg.arch{border-left-color:var(--stein);font-style:italic;font-weight:500}
+.empty-state{color:var(--stein);padding:26px 4px;border-top:2px solid var(--graphit)}
+.foot{margin-top:40px;color:var(--stein);font-size:12.5px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--graphit);color:var(--kalk);padding:10px 18px;border-radius:999px;font-size:13.5px;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw;z-index:9}
+.toast.on{opacity:1}
+
+/* Quelle */
+.src{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.seg{display:inline-flex;border:1px solid rgba(255,255,255,.28);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;color:var(--head-muted);padding:6px 13px;border-radius:999px;cursor:pointer;font-weight:550}
+.seg button.on{background:var(--head-ink);color:var(--wald)}
+.hlink{color:var(--head-muted);font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.hlink:hover{color:var(--head-ink)}
+.who{font-size:12.5px;color:var(--head-muted)}
+.who button{background:none;border:0;color:var(--head-muted);text-decoration:underline;cursor:pointer;padding:0 0 0 6px;font-size:12.5px}
+.choices{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:880px;margin-top:8px}
+.choice{border:1px solid var(--fuge);border-top:4px solid var(--wald-2);border-radius:6px;padding:18px 20px;background:var(--kalk)}
+.choice h4{margin:0 0 6px;font-size:17px;font-weight:700;font-stretch:112%}
+.choice p{margin:0 0 14px;color:var(--stein);font-size:14px}
+.choice.local{border-top-color:var(--see)}
+.mbtn{border:0;background:var(--wald-2);color:var(--beton);padding:10px 16px;border-radius:999px;cursor:pointer;font-weight:650}
+.choice.local .mbtn{background:var(--see)}
+.mbtn:disabled{opacity:.45;cursor:not-allowed}
+.setup{margin-top:24px;max-width:880px;border-left:4px solid var(--laerche);background:var(--laerche-soft);padding:12px 16px;border-radius:0 6px 6px 0;font-size:14px}
+.busy{color:var(--stein);padding:30px 0}
+@media (max-width:900px){
+  .head{padding:20px 16px 0}
+  .wrap{grid-template-columns:1fr}
+  nav{display:none;position:static;max-height:none;padding:14px 16px;border-bottom:1px solid var(--fuge)}
+  nav.open{display:block}
+  .hbtn.menu{display:inline-block}
+  main{padding:20px 16px 60px;border-left:0}
+  .search{flex:1 1 100%}.search input{width:100%;max-width:none}
+  .row,.row.plain{grid-template-columns:minmax(0,1fr);gap:6px}
+  .row .date,.row .size,.row.head .hd,.row.head>div:last-child{display:none}
+  .row.head{grid-template-columns:1fr}
+  .file a{word-break:break-all}
+  .facts{gap:18px}
+  .tl-phase{min-width:160px}
+  .tl-proj{padding-right:14px;margin-right:14px}
+}
+</style>
+</head>
+<body>
+<header>
+  <svg id="contours" aria-hidden="true" preserveAspectRatio="none"></svg>
+  <div class="head">
+    <div class="toprow">
+      <div>
+        <div class="owner">CoDo Immobilien AG, Projektportal</div>
+        <h1>Casa Coray</h1>
+        <div class="addr">Neubau Prau Curtgin 5, Flims</div>
+      </div>
+      <div class="tools">
+        <div class="search">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input id="q" type="search" placeholder="Dokumente durchsuchen" autocomplete="off" aria-label="Dokumente durchsuchen">
+        </div>
+        <button class="hbtn menu" id="menu">Ordner</button>
+        <div class="src" id="srcbox"></div>
+      </div>
+    </div>
+    <div class="facts" id="facts"></div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+</header>
+<div class="wrap">
+  <nav id="nav" aria-label="Ablage"><div class="tree" id="tree"></div></nav>
+  <main id="main"></main>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+const SNAP = null;
+const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
+const CFG = {"clientId": "", "shareUrl": ""};
+const MSAL_URL = "https://cdn.jsdelivr.net/npm/@azure/msal-browser@3.27.0/lib/msal-browser.min.js";
+const SCOPES = ["Files.Read.All"];
+let SOURCE = MODE==="file" ? "snapshot" : "none";   // snapshot | local | onedrive | none
+const HANDLES = new Map();
+let D = SNAP || {erstellt:"–",files:[],kern:[],phasen:{},stand:"",termine:{}};
+
+let current = "";
+const LABEL = {
+  "0_Projekt":"Projekt (übergeordnet)","01_Vertraege":"Verträge","02_Offerten_Beschaffung":"Offerten & Beschaffung",
+  "03_Projektorganisation":"Projektorganisation","04_Projektbeschreibung":"Projektbeschreibung","05_Vorlagen_Standards":"Vorlagen & Standards",
+  "06_Medien":"Medien","Phasen":"SIA-Phasen","1_Strategische_Planung":"Strategische Planung","2_Vorstudien":"Vorstudien",
+  "21_Definition_Machbarkeitsstudie":"21 Machbarkeitsstudie","22_Auswahlverfahren":"22 Auswahlverfahren","3_Projektierung":"Projektierung",
+  "31_Vorprojekt":"31 Vorprojekt","32_Bauprojekt":"32 Bauprojekt","33_Bewilligungsverfahren":"33 Bewilligung","4_Ausschreibung":"Ausschreibung",
+  "41_Ausschreibung_Vergabe":"41 Ausschreibung & Vergabe","5_Realisierung":"Realisierung","51_Ausfuehrungsprojekt":"51 Ausführungsprojekt",
+  "52_Ausfuehrung":"52 Ausführung","53_Inbetriebnahme_Abschluss":"53 Inbetriebnahme","6_Bewirtschaftung":"Bewirtschaftung",
+  "61_Betrieb":"61 Betrieb","62_Erhaltung_Monitoring":"62 Erhaltung","_Archiv":"Archiv","Grundlagen":"Eingang","outputs":"Versand"
+};
+const ORDER = ["0_Projekt","Phasen","Grundlagen","outputs"];
+const label = n => LABEL[n] || n.replace(/_/g," ");
+const phaseLabel = n => { const m=n.match(/^(\d)_/); return m? m[1]+" "+label(n) : label(n); };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[_\-.]/g," ");
+const href = p => p.split("/").map(encodeURIComponent).join("/");
+function store(k,v){try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v);}catch(e){return null}}
+const lastVisit = store("codo-portal-lastvisit");
+window.addEventListener("beforeunload",()=>store("codo-portal-lastvisit",new Date().toISOString().slice(0,16)));
+
+function fmtDate(m){ if(!m) return "–"; const [d]=m.split("T"); const [y,mo,da]=d.split("-"); return `${da}.${mo}.${y}`; }
+function fmtSize(b){ if(b==null) return ""; if(b<1024) return b+" B"; const kb=b/1024; if(kb<1024) return Math.round(kb).toLocaleString("de-CH")+" KB";
+  const mb=kb/1024; return (mb<10?mb.toFixed(1):Math.round(mb).toLocaleString("de-CH"))+" MB"; }
+function ext(n){ const m=n.match(/\.([a-z0-9]+)$/i); return m?m[1].toLowerCase():""; }
+function ver(n){ const m=n.match(/_v(\d+[a-z]?)(?=\.[a-z0-9]+$)/i); return m?"v"+m[1]:""; }
+function statusClass(s){ const l=s.toLowerCase(); if(l.startsWith("aktuell")||l.startsWith("abgeschlossen")||l.startsWith("neufassung")) return "b-aktuell";
+  if(l.startsWith("entwurf")) return "b-entwurf"; if(l.startsWith("eingang")) return "b-eingang"; return ""; }
+
+/* ---------- Höhenkurven ---------- */
+function drawContours(){
+  const svg=$("#contours"), W=1440, H=420; svg.setAttribute("viewBox",`0 0 ${W} ${H}`);
+  let seed=7; const rnd=()=>{ seed=(seed*9301+49297)%233280; return seed/233280; };
+  const ph=[rnd()*6,rnd()*6,rnd()*6]; let paths="";
+  for(let i=0;i<17;i++){
+    const base=-40+i*28; let d="";
+    for(let x=0;x<=W;x+=24){
+      const y=base+Math.sin(x/260+ph[0]+i*.11)*34+Math.sin(x/120+ph[1]-i*.07)*12+Math.sin(x/540+ph[2])*(40+i*3);
+      d+=(x?"L":"M")+x+" "+y.toFixed(1)+" ";
+    }
+    paths+=`<path d="${d}" fill="none" stroke="var(--contour)" stroke-width="${i%5===0?1.6:1}"/>`;
+  }
+  svg.innerHTML=paths;
+}
+
+/* ---------- Baum ---------- */
+function buildTree(){
+  const root={name:"",path:"",kids:{},files:[]};
+  for(const f of D.files){
+    const isDir=!!f.d; const parts=f.p.replace(/\/$/,"").split("/");
+    let n=root; const upto=isDir?parts.length:parts.length-1;
+    for(let i=0;i<upto;i++){ const nm=parts[i]; n.kids[nm]=n.kids[nm]||{name:nm,path:parts.slice(0,i+1).join("/"),kids:{},files:[]}; n=n.kids[nm]; }
+    if(!isDir) n.files.push(f);
+  }
+  return root;
+}
+let TREE=buildTree();
+const isReadme=f=>/00_README\.md$/.test(f.p);
+function count(n){ return n.files.filter(f=>!isReadme(f)).length+Object.values(n.kids).reduce((a,k)=>a+count(k),0); }
+function nodeAt(path){ if(!path) return TREE; let n=TREE; for(const p of path.split("/")){ n=n.kids[p]; if(!n) return null;} return n; }
+function sortKids(n){ return Object.values(n.kids).sort((a,b)=>{ const ia=ORDER.indexOf(a.name), ib=ORDER.indexOf(b.name);
+  if(n===TREE && (ia>-1||ib>-1)) return (ia<0?99:ia)-(ib<0?99:ib);
+  if(a.name==="_Archiv") return 1; if(b.name==="_Archiv") return -1; return a.name.localeCompare(b.name,"de",{numeric:true}); }); }
+let openSet; try{ openSet=new Set(JSON.parse(store("codo-portal-open")||"null")||["0_Projekt","Phasen","Phasen/3_Projektierung"]); }catch(e){ openSet=new Set(["0_Projekt","Phasen","Phasen/3_Projektierung"]); }
+function expandTo(p){ p.split("/").reduce((a,s)=>{ const x=a?a+"/"+s:s; openSet.add(x); return x; },""); }
+function nodeLabel(n){ return /^\d_/.test(n.name)? phaseLabel(n.name) : label(n.name); }
+function renderTree(){
+  const li=n=>{ const kids=sortKids(n); const has=kids.length>0; const c=count(n); const isOpen=openSet.has(n.path);
+    const cls=["node"]; if(current===n.path) cls.push("sel"); if(n.name==="_Archiv") cls.push("arch"); if(!c) cls.push("empty");
+    return `<li><div class="${cls.join(" ")}" data-path="${esc(n.path)}" tabindex="0"><span class="tw" data-tw="${esc(n.path)}">${has?(isOpen?"▾":"▸"):""}</span><span>${esc(nodeLabel(n))}</span><span class="cnt">${c||""}</span></div>${has&&isOpen?`<ul>${kids.map(li).join("")}</ul>`:""}</li>`; };
+  $("#tree").innerHTML=`<ul><li><div class="node ${current===""?"sel":""}" data-path="" tabindex="0"><span class="tw"></span><span>Gültige Dokumente</span></div></li><li><div class="node ${current==="__root"?"sel":""}" data-path="__root" tabindex="0"><span class="tw"></span><span>Steuerdateien</span><span class="cnt">${TREE.files.length}</span></div></li></ul><div class="navgap"></div><ul>${sortKids(TREE).map(li).join("")}</ul>`;
+}
+function treeAct(e){
+  const tw=e.target.closest("[data-tw]");
+  if(tw && tw.textContent){ const p=tw.dataset.tw; openSet.has(p)?openSet.delete(p):openSet.add(p); store("codo-portal-open",JSON.stringify([...openSet])); renderTree(); return; }
+  const nd=e.target.closest(".node"); if(!nd) return; if(nd.dataset.path && nd.dataset.path!=="__root") openSet.add(nd.dataset.path); go(nd.dataset.path);
+  if(window.innerWidth<900) $("#nav").classList.remove("open");
+}
+$("#tree").addEventListener("click",treeAct);
+$("#tree").addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); treeAct(e);} });
+
+/* ---------- Kopf: Fakten und Bauzeitleiste ---------- */
+function currentSub(){ const m=(D.stand||"").match(/\/\s*(\d{2})\s/); return m?m[1]:""; }
+function renderHead(){
+  const t=D.termine||{}; const facts=[];
+  const ph=Object.entries(D.phasen).find(([,v])=>v==="aktuell");
+  if(ph){ const sub=currentSub(); facts.push(["Aktuelle Phase", sub? `${sub} ${label(Object.keys(nodeAt("Phasen/"+ph[0])?.kids||{}).find(k=>k.startsWith(sub))||"").replace(/^\d+ /,"")}` : label(ph[0])]); }
+  if(t.Baueingabe) facts.push(["Baueingabe", t.Baueingabe]);
+  if(t.Baubeginn) facts.push(["Baubeginn", t.Baubeginn]);
+  if(D.files.length) facts.push([SOURCE==="onedrive"?"Live aus OneDrive":SOURCE==="local"?"Aktueller Stand geladen":"Stand der Übersicht", D.erstellt]);
+  $("#facts").innerHTML=facts.map(([k,v])=>`<div>${esc(k)}<b>${esc(v)}</b></div>`).join("");
+  if(!D.files.length){ $("#timeline").innerHTML=""; return; }
+  const phn=nodeAt("Phasen"); const sub=currentSub();
+  let h=`<div class="tl-proj"><button class="tl-projbtn ${current.startsWith("0_Projekt")?"sel":""}" data-go="0_Projekt">Projekt<small>übergeordnet, alle Phasen</small></button></div>`;
+  if(phn) for(const k of sortKids(phn)){
+    const st=D.phasen[k.name]||"offen"; const kids=sortKids(k).filter(x=>/^\d/.test(x.name)); const num=k.name[0];
+    let pct=0; if(st==="aktuell"&&kids.length){ const i=kids.findIndex(x=>x.name.startsWith(sub)); pct=Math.max(12,((i<0?0:i)+.5)/kids.length*100); }
+    h+=`<div class="tl-phase ${st} ${current.startsWith(k.path)&&current.split("/").length===2?"sel":""}" data-go="${esc(k.path)}" title="${esc(st)}">
+      <div class="tl-name"><b>${num}</b>${esc(label(k.name))}</div>
+      <div class="tl-bar"><div class="tl-fill" data-w="${st==="aktuell"?pct:(st==="abgeschlossen"?100:0)}"></div></div>
+      <div class="tl-subs">${kids.map(s=>`<span class="tl-sub ${st==="aktuell"&&s.name.startsWith(sub)?"now":""} ${current===s.path?"sel":""}" data-go="${esc(s.path)}">${esc(s.name.slice(0,2))}</span>`).join("")}</div></div>`;
+  }
+  $("#timeline").innerHTML=h;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll(".tl-fill").forEach(f=>f.style.width=f.dataset.w+"%")));
+}
+
+/* ---------- Dateizeilen ---------- */
+function linkAttr(f){
+  if(f.u) return `href="${esc(f.u)}" target="_blank" rel="noopener"`;
+  if(HANDLES.has(f.p)) return `href="#" data-lh="${esc(f.p)}"`;
+  return `href="${href(f.p)}" target="_blank" rel="noopener"`;
+}
+function isNew(f){ return lastVisit && f.m && f.m>lastVisit; }
+function fileCell(f,showPath){
+  const n=f.p.split("/").pop(); const e=ext(n); const v=ver(n);
+  const t=["pdf","docx","doc","xlsx","xls","pptx","md","mp4","mov","png","jpg","jpeg"].includes(e)?e:"other";
+  const dir=f.p.split("/").slice(0,-1).join("/");
+  return `<div class="file"><span class="ico t-${t}">${esc((e||"?").toUpperCase().slice(0,4))}</span><div><a ${linkAttr(f)}>${esc(n)}</a>${v?`<span class="ver">${v}</span>`:""}${isNew(f)?`<span class="newb">neu</span>`:""}${showPath&&dir?`<span class="path" data-go="${esc(dir)}">${esc(dir.split("/").map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(" / "))}</span>`:""}</div></div>`;
+}
+function fileList(files,showPath){
+  if(!files.length) return `<div class="empty-state">Hier liegen noch keine Dokumente. Neue Unterlagen dieser Phase gehören in diesen Ordner.</div>`;
+  return `<div class="docs"><div class="row plain head"><div>Dokument</div><div class="hd">Geändert</div><div class="hd">Grösse</div></div>${
+    files.map(f=>`<div class="row plain"><div>${fileCell(f,showPath)}</div><div class="date">${fmtDate(f.m)}</div><div class="size">${fmtSize(f.s)}</div></div>`).join("")}</div>`;
+}
+
+/* ---------- Ansichten ---------- */
+function crumb(path){
+  const parts=path.split("/"); let acc="";
+  return `<div class="crumb"><span data-go="">Gültige Dokumente</span>${parts.map(p=>{acc=acc?acc+"/"+p:p; return ` / <span data-go="${esc(acc)}">${esc(/^\d_/.test(p)?phaseLabel(p):label(p))}</span>`}).join("")}</div>`;
+}
+function resolveKern(k){
+  const inFolder=D.files.filter(f=>!f.d && f.p.startsWith(k.ablage+"/") && !f.p.slice(k.ablage.length+1).includes("/"));
+  const out=[];
+  for(const t of k.tokens){ const hit=inFolder.find(f=>{const n=f.p.split("/").pop(); return n===t||n===t+k.ext||(n.includes(t) && (!k.ext||n.endsWith(k.ext)));}); if(hit && !out.includes(hit)) out.push(hit); }
+  return out;
+}
+function viewHome(){
+  const groups={};
+  for(const k of D.kern){
+    const parts=k.ablage.split("/");
+    const g=parts[0]==="0_Projekt"? label(parts[1]||"0_Projekt") : parts.slice(1,3).map(p=>/^\d_/.test(p)?phaseLabel(p):label(p)).join(", ");
+    const gp=parts[0]==="0_Projekt"? parts.slice(0,2).join("/") : parts.slice(0,3).join("/");
+    (groups[g]=groups[g]||{path:gp,rows:[]}).rows.push(k);
+  }
+  let h=`<h2>Gültige Dokumente</h2><p class="lead">Die jeweils aktuelle Fassung jedes Projektdokuments, mit Stand und Status aus KONTEXT.md. Ein Klick auf eine Datei öffnet sie aus dem OneDrive-Ordner.</p>`;
+  if(!D.kern.length) h+=`<div class="empty-state">Keine Dokumententabelle gefunden. Die Übersicht liest den Abschnitt «Dokumente» in KONTEXT.md.</div>`;
+  for(const [g,{path,rows}] of Object.entries(groups)){
+    h+=`<h3><span class="path" style="display:inline;color:inherit;font-size:inherit;margin:0" data-go="${esc(path)}">${esc(g)}</span><small>${rows.length}</small></h3><div class="docs"><div class="row head"><div>Dokument</div><div class="hd">Stand</div><div>Status</div></div>`;
+    for(const k of rows){ const fs=resolveKern(k); const [st,...rest]=k.status.split(";");
+      h+=`<div class="row"><div><div class="doc-title">${esc(k.doc)}</div>${fs.length?fs.map(f=>fileCell(f,false)).join(""):`<span class="warn">Datei nicht gefunden: ${esc(k.tokens.join(", "))}</span>`}</div><div class="date">${esc(k.stand)}</div><div><span class="badge ${statusClass(k.status)}">${esc(st.trim())}</span>${rest.length?`<span class="note">${esc(rest.join(";").trim())}</span>`:""}</div></div>`; }
+    h+=`</div>`;
+  }
+  const recent=D.files.filter(f=>!f.d && f.m).sort((a,b)=>b.m.localeCompare(a.m)).slice(0,8);
+  h+=`<h3>Zuletzt geändert</h3>`+fileList(recent,true);
+  h+=`<p class="foot">${D.files.filter(f=>!f.d).length} Dateien in der Ablage. ${SOURCE==="onedrive"?"Live aus OneDrive geladen":SOURCE==="local"?"Aktueller Stand geladen":"Übersicht erzeugt"} am ${esc(D.erstellt)}.</p>`;
+  return h;
+}
+function viewFolder(path){
+  if(path==="__root") return `<div class="crumb"><span data-go="">Gültige Dokumente</span> / Steuerdateien</div><h2>Steuerdateien</h2><p class="lead">Stammdaten, Entscheide, Arbeitsprotokoll und Ablagewegweiser im Projektstamm. Markdown-Dateien lassen sich im Editor oder Browser lesen.</p>`+fileList(TREE.files,false);
+  const n=nodeAt(path); if(!n) return viewHome();
+  const kids=sortKids(n); const st=D.phasen[n.name];
+  let h=crumb(path)+`<h2>${esc(nodeLabel(n))}</h2><p class="lead">${count(n)} Dokumente${n.name==="_Archiv"?". Abgelöste Fassungen, aufbewahrt zur Nachvollziehbarkeit.":""}${st?`. Phase ${st}.`:""}</p>`;
+  const readme=n.files.find(isReadme);
+  if(readme) h+=`<div class="readme">Was hier hingehört: <a ${linkAttr(readme)}>Ablagehinweise lesen</a></div>`;
+  if(kids.length) h+=`<div class="registers">${kids.map(k=>`<div class="reg ${k.name==="_Archiv"?"arch":""}" data-go="${esc(k.path)}" tabindex="0">${esc(nodeLabel(k))}<span>${count(k)}</span></div>`).join("")}</div>`;
+  const files=n.files.filter(f=>!isReadme(f)).sort((a,b)=>a.p.localeCompare(b.p,"de",{numeric:true}));
+  if(files.length||!kids.length) h+=fileList(files,false);
+  return h;
+}
+function viewSearch(q){
+  const terms=norm(q).split(/\s+/).filter(Boolean);
+  const hits=D.files.filter(f=>!f.d && terms.every(t=>norm(f.p).includes(t))).sort((a,b)=>(b.m||"").localeCompare(a.m||""));
+  return `<h2>Suche nach «${esc(q)}»</h2><p class="lead">${hits.length===1?"1 Treffer":hits.length+" Treffer"}${hits.length?", neueste zuerst.":". Versuche einen kürzeren Begriff, zum Beispiel «BKP» oder «Checkliste»."}</p>`+(hits.length?fileList(hits,true):"");
+}
+function render(){
+  const q=$("#q").value.trim();
+  if(!D.files.length && MODE==="web"){ $("#main").innerHTML=viewWelcome(); $("#tree").innerHTML=""; renderHead(); renderSrc(); return; }
+  $("#main").innerHTML = q?viewSearch(q):(current?viewFolder(current):viewHome());
+  renderTree(); renderHead(); renderSrc();
+}
+function go(p){ current=p; $("#q").value=""; if(p&&p!=="__root") expandTo(p); render(); if(window.scrollY>200) window.scrollTo({top:0}); store("codo-portal-cur",p); }
+document.addEventListener("click",e=>{ const g=e.target.closest("[data-go]"); if(g && !e.target.closest("a")) go(g.dataset.go); });
+document.addEventListener("keydown",e=>{ const g=e.target.closest&&e.target.closest(".reg[data-go]"); if(g&&(e.key==="Enter"||e.key===" ")){ e.preventDefault(); go(g.dataset.go);} });
+$("#q").addEventListener("input",render);
+$("#menu").addEventListener("click",()=>$("#nav").classList.toggle("open"));
+function toast(t){ const el=$("#toast"); el.textContent=t; el.classList.add("on"); clearTimeout(toast.t); toast.t=setTimeout(()=>el.classList.remove("on"),3800); }
+
+/* ---------- Ordner neu einlesen (File System Access API, Edge/Chrome) ---------- */
+function parseKern(k){
+  const m=k.match(/\n## Dokumente\n([\s\S]*?)(\n## |\n### |$)/); if(!m) return [];
+  const rows=[];
+  for(const line of m[1].split("\n")){
+    if(!line.startsWith("| ")||line.startsWith("| Dokument |")||line.startsWith("|---")) continue;
+    const c=line.trim().replace(/^\||\|$/g,"").split("|").map(s=>s.trim()); if(c.length<5) continue;
+    let [doc,datei,ablage,stand,status]=c; ablage=ablage.replace(/`/g,"").replace(/\/$/,"");
+    let e=""; const mm=datei.match(/\((\.\w+)\)\s*$/); if(mm){ e=mm[1]; datei=datei.slice(0,mm.index).trim(); }
+    rows.push({doc,tokens:datei.split(", ").map(s=>s.trim()).filter(Boolean),ext:e,ablage,stand,status});
+  }
+  return rows;
+}
+function parseTermine(k){ const o={}; let m=k.match(/Baueingabe angestrebt:\s*\*\*([^*]+)\*\*/); if(m) o.Baueingabe=m[1].trim(); m=k.match(/Gewünschter Baubeginn:\s*\*\*([^*]+)\*\*/); if(m) o.Baubeginn=m[1].trim(); return o; }
+function parsePhasen(s){
+  const out={}; const re=/(\d_[A-Za-z_]+)\/\s.*?(✅|🟡|⬜)/g; let m;
+  while((m=re.exec(s))) out[m[1]]={"✅":"abgeschlossen","🟡":"aktuell","⬜":"offen"}[m[2]];
+  const a=s.match(/## Aktueller Stand\n(.+)/); return [out,a?a[1].replace(/[`*🟡✅⬜]/g,"").trim():""];
+}
+const SKIP=new Set([".gitkeep","desktop.ini","Thumbs.db",".DS_Store","Projektportal.html"]);
+/* ---------- Quelle wählen ---------- */
+function renderSrc(){
+  let h="";
+  if(MODE==="file"){
+    h=`<button class="hbtn" id="b-local" title="Liest den aktuellen Stand direkt aus dem synchronisierten Projektordner (Edge oder Chrome)">Aktuellen Stand laden</button>`;
+    if(CFG.onlineUrl) h+=`<a class="hlink" href="${esc(CFG.onlineUrl)}" target="_blank" rel="noopener">Online-Portal</a>`;
+  } else {
+    h=`<div class="seg" role="group" aria-label="Quelle"><button id="b-od" class="${SOURCE==="onedrive"?"on":""}">OneDrive</button><button id="b-local" class="${SOURCE==="local"?"on":""}">Lokaler Ordner</button></div>`;
+    if(SOURCE==="onedrive" && account) h+=`<span class="who">${esc(account.username||"")}<button id="b-out">Abmelden</button></span>`;
+  }
+  $("#srcbox").innerHTML=h;
+}
+document.addEventListener("click",e=>{
+  const id=e.target.id;
+  if(id==="b-local") loadLocal();
+  else if(id==="b-od"||id==="c-od") startOneDrive(true);
+  else if(id==="c-local") loadLocal();
+  else if(id==="b-out") signOut();
+  const a=e.target.closest("a[data-lh]");
+  if(a){ e.preventDefault(); openHandle(a.dataset.lh); }
+});
+async function openHandle(p){
+  const w=window.open("","_blank");
+  try{ const f=await HANDLES.get(p).getFile(); const url=URL.createObjectURL(f); if(w) w.location=url; else location.href=url; }
+  catch(e){ if(w) w.close(); toast("Datei lässt sich nicht öffnen: "+(e.message||e)); }
+}
+function viewWelcome(){
+  const ok=CFG.clientId&&CFG.shareUrl;
+  return `<h2>Projektablage öffnen</h2><p class="lead">Wähle, woher das Portal die Dokumente holt. Beides zeigt dieselbe Struktur, nur lesend.</p>
+  <div class="choices">
+    <div class="choice"><h4>OneDrive online</h4><p>Anmelden mit deinem Microsoft-Konto. Funktioniert überall, auch unterwegs. Dokumente öffnen sich in der OneDrive-Ansicht im Browser.</p><button class="mbtn" id="c-od" ${ok?"":"disabled"}>Mit Microsoft anmelden</button></div>
+    <div class="choice local"><h4>Synchronisierter Ordner</h4><p>Wenn der Projektordner über OneDrive auf deinem PC liegt. Ordner «CoDO Neubau Flims» wählen. Nur Edge oder Chrome.</p><button class="mbtn" id="c-local">Ordner wählen</button></div>
+  </div>${ok?"":`<div class="setup">Der Online-Zugang ist noch nicht eingerichtet: Es fehlen die App-Kennung von Microsoft und der Freigabelink des Projektordners.</div>`}`;
+}
+function setBusy(t){ $("#main").innerHTML=`<div class="busy">${esc(t)}</div>`; }
+function stamp(dt){ const pad=n=>String(n).padStart(2,"0"); return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`; }
+function nowCH(){ const n=new Date(), pad=x=>String(x).padStart(2,"0"); return `${pad(n.getDate())}.${pad(n.getMonth()+1)}.${n.getFullYear()} ${pad(n.getHours())}:${pad(n.getMinutes())}`; }
+function applyData(files,k,ps,src){
+  const [phasen,stand]=parsePhasen(ps||"");
+  D={erstellt:nowCH(),files,kern:parseKern(k||""),termine:parseTermine(k||""),phasen:Object.keys(phasen).length?phasen:D.phasen,stand:stand||D.stand};
+  SOURCE=src; TREE=buildTree(); if(current&&current!=="__root"&&!nodeAt(current)) current=""; render();
+}
+
+/* ---------- Lokaler Ordner (File System Access API, Edge/Chrome) ---------- */
+async function walk(dir,prefix,out,keep){
+  for await (const [name,h] of dir.entries()){
+    if(h.kind==="directory"){ if(name==="_Portal"||name.startsWith("_to_delete")||name===".git") continue;
+      out.push({p:prefix+name+"/",d:1}); await walk(h,prefix+name+"/",out,keep); }
+    else { if(SKIP.has(name)||name.startsWith("~$")||name.startsWith(".~lock")) continue;
+      const f=await h.getFile(); out.push({p:prefix+name,s:f.size,m:stamp(new Date(f.lastModified))}); if(keep) HANDLES.set(prefix+name,h); }
+  }
+}
+function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open("codo-portal",1); r.onupgradeneeded=()=>r.result.createObjectStore("h"); r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function idbGet(){ try{ const db=await idb(); return await new Promise(r=>{ const q=db.transaction("h").objectStore("h").get("root"); q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); }); }catch(e){ return null; } }
+async function idbSet(h){ try{ const db=await idb(); db.transaction("h","readwrite").objectStore("h").put(h,"root"); }catch(e){} }
+async function loadLocal(){
+  if(!window.showDirectoryPicker){ toast("Der lokale Ordner lässt sich nur in Edge oder Chrome laden."); return; }
+  try{
+    let h=await idbGet();
+    if(h){ const ok=(await h.queryPermission({mode:"read"}))==="granted"||(await h.requestPermission({mode:"read"}))==="granted"; if(!ok) h=null; }
+    if(!h){ toast("Wähle den Projektordner «CoDO Neubau Flims»."); h=await window.showDirectoryPicker({id:"codo-flims",mode:"read"}); }
+    let k; try{ k=await (await (await h.getFileHandle("KONTEXT.md")).getFile()).text(); }catch(e){ toast("In diesem Ordner fehlt KONTEXT.md. Wähle den Projektordner «CoDO Neubau Flims»."); return; }
+    await idbSet(h);
+    const files=[]; HANDLES.clear(); await walk(h,"",files,MODE==="web");
+    let ps=""; try{ ps=await (await (await h.getFileHandle("PROJEKTSTRUKTUR.md")).getFile()).text(); }catch(e){}
+    store("codo-src","local");
+    applyData(files,k,ps,"local"); toast("Aktueller Stand geladen: "+files.filter(f=>!f.d).length+" Dateien.");
+  }catch(e){ if(e&&e.name==="AbortError") return; toast("Laden nicht möglich: "+(e&&e.message||e)); }
+}
+
+/* ---------- OneDrive über Microsoft Graph ---------- */
+let msalApp=null, account=null;
+function loadScript(src){ return new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=src; s.onload=res; s.onerror=()=>rej(new Error("Anmeldebibliothek konnte nicht geladen werden.")); document.head.appendChild(s); }); }
+async function ensureMsal(){
+  if(msalApp) return msalApp;
+  if(!window.msal) await loadScript(MSAL_URL);
+  msalApp=new msal.PublicClientApplication({auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/common",redirectUri:location.origin+location.pathname},cache:{cacheLocation:"localStorage"}});
+  await msalApp.initialize();
+  const r=await msalApp.handleRedirectPromise();
+  account=(r&&r.account)||msalApp.getActiveAccount()||msalApp.getAllAccounts()[0]||null;
+  if(account) msalApp.setActiveAccount(account);
+  return msalApp;
+}
+async function getToken(interactive){
+  const app=await ensureMsal();
+  if(!account){ if(interactive){ store("codo-src","onedrive"); await app.loginRedirect({scopes:SCOPES,prompt:"select_account"}); } return null; }
+  try{ return (await app.acquireTokenSilent({scopes:SCOPES,account})).accessToken; }
+  catch(e){ if(interactive){ await app.acquireTokenRedirect({scopes:SCOPES,account}); } return null; }
+}
+function shareId(u){ return "u!"+btoa(unescape(encodeURIComponent(u))).replace(/=+$/,"").replace(/\//g,"_").replace(/\+/g,"-"); }
+async function g(t,url){
+  const r=await fetch(url.startsWith("http")?url:"https://graph.microsoft.com/v1.0"+url,{headers:{Authorization:"Bearer "+t}});
+  if(!r.ok){ const e=new Error("Graph "+r.status); e.status=r.status; try{ e.body=await r.json(); }catch(_){} throw e; }
+  return r.json();
+}
+async function startOneDrive(interactive){
+  if(!CFG.clientId||!CFG.shareUrl){ toast("Der Online-Zugang ist noch nicht eingerichtet."); return; }
+  try{
+    setBusy("Verbinde mit OneDrive …");
+    const t=await getToken(interactive);
+    if(!t){ render(); return; }
+    const root=await g(t,"/shares/"+shareId(CFG.shareUrl)+"/driveItem");
+    const driveId=root.parentReference.driveId; const files=[]; let kUrl=null,pUrl=null; let n=0;
+    async function walkG(id,prefix){
+      let url=`/drives/${driveId}/items/${id}/children?$top=200`;
+      while(url){ const r=await g(t,url);
+        for(const it of r.value){
+          if(it.folder){ if(it.name==="_Portal"||it.name.startsWith("_to_delete")) continue; files.push({p:prefix+it.name+"/",d:1}); await walkG(it.id,prefix+it.name+"/"); }
+          else { if(SKIP.has(it.name)||it.name.startsWith("~$")) continue;
+            files.push({p:prefix+it.name,s:it.size,m:stamp(new Date(it.lastModifiedDateTime)),u:it.webUrl});
+            if(!prefix&&it.name==="KONTEXT.md") kUrl=it["@microsoft.graph.downloadUrl"]; if(!prefix&&it.name==="PROJEKTSTRUKTUR.md") pUrl=it["@microsoft.graph.downloadUrl"]; }
+        }
+        setBusy(`Lese OneDrive … ${files.filter(f=>!f.d).length} Dateien`);
+        url=r["@odata.nextLink"]||null; }
+    }
+    await walkG(root.id,"");
+    const txt=async u=>{ try{ return u? await (await fetch(u)).text() : ""; }catch(e){ return ""; } };
+    const [k,ps]=await Promise.all([txt(kUrl),txt(pUrl)]);
+    HANDLES.clear(); store("codo-src","onedrive");
+    applyData(files,k,ps,"onedrive"); toast("Live aus OneDrive geladen: "+files.filter(f=>!f.d).length+" Dateien.");
+  }catch(e){ render(); toast(odError(e)); }
+}
+function odError(e){
+  const code=(e&&(e.errorCode||""))+" "+(e&&e.message||"");
+  if(/AADSTS65001|consent|AADSTS90094|admin/i.test(code)) return "Dein Firmenkonto verlangt eine Zustimmung eurer IT. Melde dich mit einem privaten Microsoft-Konto an oder nutze den lokalen Ordner.";
+  if(e&&(e.status===403||e.status===404)) return "Mit diesem Konto besteht kein Zugriff auf den Projektordner. Der Ordner muss für dieses Microsoft-Konto freigegeben sein.";
+  if(e&&e.status===401) return "Die Anmeldung ist abgelaufen. Bitte erneut anmelden.";
+  return "OneDrive-Zugriff nicht möglich: "+(e&&e.message||e);
+}
+async function signOut(){ try{ const app=await ensureMsal(); store("codo-src","none"); await app.logoutRedirect({account}); }catch(e){ toast("Abmelden nicht möglich."); } }
+
+drawContours();
+current=store("codo-portal-cur")||""; if(current && current!=="__root" && !nodeAt(current)) current="";
+if(current && current!=="__root") expandTo(current);
+render();
+if(MODE==="web" && CFG.clientId && CFG.shareUrl){
+  // Rückkehr von der Microsoft-Anmeldung oder gespeicherte Wahl «OneDrive»: still verbinden
+  const back=/[#&](code|error)=/.test(location.hash+location.search);
+  if(back || store("codo-src")==="onedrive") startOneDrive(false).then(()=>{ if(back) history.replaceState(null,"",location.pathname); });
+}
+</script>
+</body>
+</html>
