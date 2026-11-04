@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>NeubauFlimsPortal</title>
+<title>Portal Neubau Flims</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#23423a">
 <link rel="icon" href="favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="apple-mobile-web-app-title" content="NeubauFlims">
+<meta name="apple-mobile-web-app-title" content="Neubau Flims">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
@@ -190,7 +190,7 @@ h3 small{font-weight:450;color:var(--stein);font-size:13px}
     <div class="toprow">
       <div>
         <div class="owner">CoDo Immobilien AG</div>
-        <h1>NeubauFlims<wbr>Portal</h1>
+        <h1>Portal Neubau Flims</h1>
         <div class="addr">Casa Coray, Prau Curtgin 5, Flims</div>
       </div>
       <div class="tools">
@@ -440,7 +440,7 @@ let installEvt=null;
 if(MODE==="web"){
   if("serviceWorker" in navigator && location.protocol==="https:") navigator.serviceWorker.register("sw.js").catch(()=>{});
   window.addEventListener("beforeinstallprompt",e=>{ e.preventDefault(); installEvt=e; renderSrc(); });
-  window.addEventListener("appinstalled",()=>{ installEvt=null; renderSrc(); toast("NeubauFlimsPortal ist installiert."); });
+  window.addEventListener("appinstalled",()=>{ installEvt=null; renderSrc(); toast("Portal Neubau Flims ist installiert."); });
 }
 async function installApp(){ if(!installEvt) return; installEvt.prompt(); try{ await installEvt.userChoice; }catch(e){} installEvt=null; renderSrc(); }
 
