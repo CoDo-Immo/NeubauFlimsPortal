@@ -227,7 +227,7 @@ dialog.confirm button.danger{background:var(--rost);border-color:var(--rost);col
 <div class="toast" id="toast" role="status"></div>
 <dialog class="confirm" id="delDlg"><h4>Datei löschen?</h4><p class="fn" id="delName"></p><p>Die Datei wird in OneDrive gelöscht und liegt danach im Papierkorb von OneDrive, wo sie sich wiederherstellen lässt. Der Eintrag in KONTEXT.md bleibt bestehen und muss nachgeführt werden.</p><div class="btns"><button id="delNo" type="button">Abbrechen</button><button id="delYes" type="button" class="danger">Löschen</button></div></dialog>
 <script>
-const PORTAL_VERSION = "1.1";
+const PORTAL_VERSION = "1.2";
 const PORTAL_DATUM = "04.11.2026";
 const SNAP = null;
 const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
@@ -472,7 +472,7 @@ function renderSrc(){
     if(CFG.onlineUrl) h+=`<a class="hlink" href="${esc(CFG.onlineUrl)}" target="_blank" rel="noopener">Online-Portal</a>`;
   } else {
     h=`<div class="seg" role="group" aria-label="Quelle"><button id="b-od" class="${SOURCE==="onedrive"?"on":""}">OneDrive</button><button id="b-local" class="${SOURCE==="local"?"on":""}">Lokaler Ordner</button></div>`;
-    if(SOURCE==="onedrive" && account) h+=`<span class="who">${esc(account.username||"")}<button id="b-out">Abmelden</button></span>`;
+    if(SOURCE==="onedrive" && account) h+=`<span class="who">${esc(account.username||"")}${IS_OWNER?" (Eigentümer)":""}<button id="b-out">Abmelden</button></span>`;
     if(installEvt) h+=`<button class="hbtn" id="b-install" title="Portal als App mit eigenem Fenster und Desktop-Symbol installieren">Als App installieren</button>`;
   }
   $("#srcbox").innerHTML=h;
@@ -572,8 +572,12 @@ async function startOneDrive(interactive){
     const root=await g(t,"/shares/"+shareId(CFG.shareUrl)+"/driveItem");
     const driveId=root.parentReference.driveId; const files=[]; let kUrl=null,pUrl=null; let n=0;
     OD_DRIVE=driveId; IS_OWNER=false;
-    try{ const [me,drv]=await Promise.all([g(t,"/me?$select=id"),g(t,`/drives/${driveId}?$select=owner`)]);
-      const oid=(drv.owner&&(drv.owner.user||{}).id||"").toLowerCase(); IS_OWNER=!!oid && oid===String(me.id||"").toLowerCase(); }catch(e){ IS_OWNER=false; }
+    // Eigentümer erkennen: Konto-ID mit Eigentümer des Laufwerks vergleichen (bei privaten Konten auch mit der Laufwerks-ID)
+    const nid=x=>String(x||"").toLowerCase().replace(/[^0-9a-f]/g,"").replace(/^0+/,"").slice(-16);
+    let meId=""; try{ meId=nid((await g(t,"/me?$select=id")).id); }catch(e){}
+    const cands=[driveId, root.shared&&root.shared.owner&&root.shared.owner.user&&root.shared.owner.user.id];
+    try{ const drv=await g(t,`/drives/${driveId}?$select=owner`); cands.push(drv.owner&&drv.owner.user&&drv.owner.user.id); }catch(e){}
+    IS_OWNER=!!meId && cands.some(c=>c && nid(c)===meId);
     async function walkG(id,prefix){
       let url=`/drives/${driveId}/items/${id}/children?$top=200`;
       while(url){ const r=await g(t,url);
