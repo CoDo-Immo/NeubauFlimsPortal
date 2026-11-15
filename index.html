@@ -227,8 +227,8 @@ dialog.confirm button.danger{background:var(--rost);border-color:var(--rost);col
 <div class="toast" id="toast" role="status"></div>
 <dialog class="confirm" id="delDlg"><h4>Datei löschen?</h4><p class="fn" id="delName"></p><p>Die Datei wird in OneDrive gelöscht und liegt danach im Papierkorb von OneDrive, wo sie sich wiederherstellen lässt. Der Eintrag in KONTEXT.md bleibt bestehen und muss nachgeführt werden.</p><div class="btns"><button id="delNo" type="button">Abbrechen</button><button id="delYes" type="button" class="danger">Löschen</button></div></dialog>
 <script>
-const PORTAL_VERSION = "1.2";
-const PORTAL_DATUM = "04.11.2026";
+const PORTAL_VERSION = "1.3";
+const PORTAL_DATUM = "15.11.2026";
 const SNAP = null;
 const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
 const CFG = {"clientId": "fda05041-c0b9-4a93-af9c-e266ebabf93e", "shareUrl": "https://1drv.ms/f/c/f41bc9247ecf3149/IgDW8fdLrfPVQLD3jdWSnXLhAWM9yLuGRhJfVN1Ixe5YN78", "davBase": "https://d.docs.live.net/f41bc9247ecf3149/Documente/LLM_Projekte/projekte/CoDO%20Neubau%20Flims/"};
@@ -244,7 +244,7 @@ let current = "";
 const LABEL = {
   "0_Projekt":"Projekt (übergeordnet)","01_Vertraege":"Verträge","02_Offerten_Beschaffung":"Offerten & Beschaffung",
   "03_Projektorganisation":"Projektorganisation","04_Projektbeschreibung":"Projektbeschreibung","05_Vorlagen_Standards":"Vorlagen & Standards",
-  "06_Medien":"Medien","Phasen":"SIA-Phasen","1_Strategische_Planung":"Strategische Planung","2_Vorstudien":"Vorstudien",
+  "06_Medien":"Medien","07_VR_Aktionaere":"VR & Aktionäre","Phasen":"SIA-Phasen","1_Strategische_Planung":"Strategische Planung","2_Vorstudien":"Vorstudien",
   "21_Definition_Machbarkeitsstudie":"21 Machbarkeitsstudie","22_Auswahlverfahren":"22 Auswahlverfahren","3_Projektierung":"Projektierung",
   "31_Vorprojekt":"31 Vorprojekt","32_Bauprojekt":"32 Bauprojekt","33_Bewilligungsverfahren":"33 Bewilligung","4_Ausschreibung":"Ausschreibung",
   "41_Ausschreibung_Vergabe":"41 Ausschreibung & Vergabe","5_Realisierung":"Realisierung","51_Ausfuehrungsprojekt":"51 Ausführungsprojekt",
