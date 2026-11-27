@@ -227,8 +227,8 @@ dialog.confirm button.danger{background:var(--rost);border-color:var(--rost);col
 <div class="toast" id="toast" role="status"></div>
 <dialog class="confirm" id="delDlg"><h4>Datei löschen?</h4><p class="fn" id="delName"></p><p>Die Datei wird in OneDrive gelöscht und liegt danach im Papierkorb von OneDrive, wo sie sich wiederherstellen lässt. Der Eintrag in KONTEXT.md bleibt bestehen und muss nachgeführt werden.</p><div class="btns"><button id="delNo" type="button">Abbrechen</button><button id="delYes" type="button" class="danger">Löschen</button></div></dialog>
 <script>
-const PORTAL_VERSION = "1.4";
-const PORTAL_DATUM = "26.11.2026";
+const PORTAL_VERSION = "1.5";
+const PORTAL_DATUM = "27.11.2026";
 const SNAP = null;
 const MODE = "web";   // "file" = lokale Datei im Projektordner, "web" = gehostete Seite
 const CFG = {"clientId": "fda05041-c0b9-4a93-af9c-e266ebabf93e", "shareUrl": "https://1drv.ms/f/c/f41bc9247ecf3149/IgDW8fdLrfPVQLD3jdWSnXLhAWM9yLuGRhJfVN1Ixe5YN78", "davBase": "https://d.docs.live.net/f41bc9247ecf3149/Documente/LLM_Projekte/projekte/CoDO%20Neubau%20Flims/"};
@@ -472,6 +472,7 @@ function renderSrc(){
     if(CFG.onlineUrl) h+=`<a class="hlink" href="${esc(CFG.onlineUrl)}" target="_blank" rel="noopener">Online-Portal</a>`;
   } else {
     h=`<div class="seg" role="group" aria-label="Quelle"><button id="b-od" class="${SOURCE==="onedrive"?"on":""}">OneDrive</button><button id="b-local" class="${SOURCE==="local"?"on":""}">Lokaler Ordner</button></div>`;
+    if(SOURCE==="local"||SOURCE==="onedrive") h+=`<button class="hbtn" id="b-refresh" title="Ablage neu einlesen">Aktualisieren</button>`;
     if(SOURCE==="local") h+=`<button class="hbtn" id="b-pick" title="Anderen Ordner wählen">Ordner wechseln</button>`;
     if(SOURCE==="onedrive" && account) h+=`<span class="who">${esc(account.username||"")}${IS_OWNER?" (Eigentümer)":""}<button id="b-out">Abmelden</button></span>`;
     if(installEvt) h+=`<button class="hbtn" id="b-install" title="Portal als App mit eigenem Fenster und Desktop-Symbol installieren">Als App installieren</button>`;
@@ -482,6 +483,7 @@ document.addEventListener("click",e=>{
   const id=e.target.id;
   if(id==="b-local") loadLocal(e.shiftKey);
   else if(id==="b-pick") loadLocal(true);
+  else if(id==="b-refresh") { if(SOURCE==="onedrive") startOneDrive(true); else loadLocal(false); }
   else if(id==="b-od"||id==="c-od") startOneDrive(true);
   else if(id==="c-local") loadLocal();
   else if(id==="b-out") signOut();
@@ -528,12 +530,13 @@ function idb(){ return new Promise((res,rej)=>{ const r=indexedDB.open("codo-por
 async function idbGet(){ try{ const db=await withTimeout(idb(),1500,null); if(!db) return null; return await withTimeout(new Promise(r=>{ const q=db.transaction("h").objectStore("h").get("root"); q.onsuccess=()=>r(q.result); q.onerror=()=>r(null); }),1500,null); }catch(e){ return null; } }
 async function idbSet(h){ try{ const db=await withTimeout(idb(),1500,null); if(db) db.transaction("h","readwrite").objectStore("h").put(h,"root"); }catch(e){} }
 function toastLong(t){ toast(t); clearTimeout(toast.t); toast.t=setTimeout(()=>$("#toast").classList.remove("on"),9000); }
-async function loadLocal(forcePick){
+async function loadLocal(forcePick,silent){
   if(!window.showDirectoryPicker){ toastLong("Der lokale Ordner lässt sich nur in Edge oder Chrome laden."); return; }
   toast("Projektordner wird geöffnet …");
   try{
     let h=forcePick?null:await idbGet();
     if(h){ let st="denied"; try{ st=await withTimeout(h.queryPermission({mode:"read"}),1500,"timeout"); }catch(e){} if(st!=="granted") h=null; }
+    if(!h && silent){ toastLong("Für den aktuellen Stand des lokalen Ordners auf «"+(MODE==="file"?"Aktuellen Stand laden":"Lokaler Ordner")+"» klicken."); return; }
     if(!h){ toast("Wähle den Projektordner «CoDO Neubau Flims»."); h=await window.showDirectoryPicker({id:"codo-flims",mode:"read"}); }
     let k; try{ k=await (await (await h.getFileHandle("KONTEXT.md")).getFile()).text(); }catch(e){ toastLong("In diesem Ordner fehlt KONTEXT.md. Wähle den Projektordner «CoDO Neubau Flims»."); return; }
     await idbSet(h);
@@ -652,6 +655,8 @@ drawContours();
 current=store("codo-portal-cur")||""; if(current && current!=="__root" && !nodeAt(current)) current="";
 if(current && current!=="__root") expandTo(current);
 render();
+// gespeicherte Wahl «Lokaler Ordner»: still neu einlesen, wenn der Browser den Zugriff noch erlaubt
+if(store("codo-src")==="local" && window.showDirectoryPicker) loadLocal(false,true);
 if(MODE==="web" && CFG.clientId && CFG.shareUrl){
   // Rückkehr von der Microsoft-Anmeldung oder gespeicherte Wahl «OneDrive»: still verbinden
   const back=/[#&](code|error)=/.test(location.hash+location.search);
